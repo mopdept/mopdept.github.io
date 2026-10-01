@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Department Reports — Washroom Watch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--tile:#E6F1EE;--grout:#CFE2DD;--pine:#0F3D3E;--ink:#12302F;--muted:#5B7774;--sign:#F5C518;--bad:#C8442F;--ok:#1E8E5A;--prog:#2A74C9;--r:14px}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Hind Siliguri",system-ui,sans-serif;color:var(--ink);background:var(--tile);
+  background-image:linear-gradient(var(--grout) 1px,transparent 1px),linear-gradient(90deg,var(--grout) 1px,transparent 1px);background-size:56px 56px;line-height:1.6}
+h1,h2,h3{font-family:"Bricolage Grotesque",sans-serif;margin:0;line-height:1.1}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+:focus-visible{outline:3px solid var(--sign);outline-offset:2px}
+.bar{background:var(--pine);color:#fff;position:sticky;top:0;z-index:20}
+.bar .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+.brand{font-family:"Bricolage Grotesque";font-weight:800;font-size:1.2rem;display:flex;gap:10px;align-items:center}
+.brand i{width:28px;height:28px;background:var(--sign);border-radius:7px;display:grid;place-items:center;color:var(--pine);font-style:normal}
+.bar a,.bar button{color:#fff;text-decoration:none;font:500 .95rem "Hind Siliguri";background:none;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}
+.bar a:hover,.bar button:hover{background:rgba(255,255,255,.12)}
+.head{padding:40px 0 10px}
+.head h1{font-size:clamp(2rem,4.6vw,3.3rem);font-weight:800;color:var(--pine);letter-spacing:-.02em}
+.head p{color:var(--muted);margin:10px 0 0;max-width:56ch}
+.tabs{position:sticky;top:60px;z-index:10;background:var(--tile);padding:12px 0;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{border:1.5px solid var(--grout);background:#fff;border-radius:99px;padding:7px 14px;font:500 .92rem "Hind Siliguri";cursor:pointer}
+.chip b{margin-left:6px;background:var(--grout);border-radius:99px;padding:0 8px;font-size:.8rem}
+.chip.on{background:var(--pine);border-color:var(--pine);color:#fff}.chip.on b{background:var(--sign);color:var(--pine)}
+.sel{margin-left:auto;display:flex;gap:8px}
+.sel select{font:400 .95rem "Hind Siliguri";padding:7px 10px;border:1.5px solid var(--grout);border-radius:10px;background:#fff}
+.btn{background:var(--pine);color:#fff;border:0;border-radius:10px;padding:8px 16px;font:600 .95rem "Hind Siliguri";cursor:pointer}
+.dept{background:#fff;border:1px solid var(--grout);border-radius:var(--r);padding:22px;margin:18px 0}
+.dh{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:16px;border-bottom:3px solid var(--sign);padding-bottom:12px}
+.dh h2{font-size:1.7rem;color:var(--pine)}
+.cnt{display:flex;gap:6px;font-size:.82rem;font-weight:600;flex-wrap:wrap}
+.cnt span{padding:3px 10px;border-radius:99px}
+.c-P{background:#FBE3DE;color:var(--bad)}.c-I{background:#DCEAFB;color:var(--prog)}.c-R{background:#DDF3E7;color:var(--ok)}.c-T{background:var(--grout);color:var(--pine)}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.ph{position:relative;border:0;padding:0;border-radius:12px;overflow:hidden;cursor:pointer;aspect-ratio:1;background:var(--grout);text-align:left}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph .cap{position:absolute;inset:auto 0 0 0;padding:26px 10px 9px;background:linear-gradient(transparent,rgba(8,32,32,.88));color:#fff;font-size:.82rem;line-height:1.3}
+.ph .cap b{display:block;font-size:.92rem}
+.dot{position:absolute;top:8px;left:8px;font-size:.72rem;font-weight:600;padding:2px 9px;border-radius:99px;background:#fff}
+.d-Pending{color:var(--bad)}.d-In\ Progress{color:var(--prog)}.d-Resolved{color:var(--ok)}
+.empty{text-align:center;color:var(--muted);padding:50px}
+/* lightbox */
+dialog{border:0;border-radius:var(--r);padding:0;max-width:760px;width:94vw;overflow:hidden}
+dialog::backdrop{background:rgba(8,32,32,.7)}
+dialog img{width:100%;max-height:60vh;object-fit:contain;background:#0b2223;display:block}
+.dbody{padding:18px 20px 20px}
+.dbody h3{font-size:1.25rem;margin-bottom:6px}
+.dbody .m{color:var(--muted);font-size:.9rem;margin-top:8px}
+.x{float:right}
+footer{padding:30px 0 50px;text-align:center;color:var(--muted);font-size:.9rem}
+@media print{.bar,.tabs,footer{display:none}.dept{break-inside:avoid;border:0}body{background:#fff}}
+
+[data-theme=dark]{--tile:#0E2223;--grout:#1F3B3B;--ink:#E4F1EE;--muted:#9BB5B1;--pine:#1F8A82;--paper:#14302F}
+[data-theme=dark] .rep,[data-theme=dark] .dept,[data-theme=dark] .chip:not(.on),[data-theme=dark] .sel select,[data-theme=dark] dialog{background:#14302F;color:var(--ink)}
+[data-theme=dark] input,[data-theme=dark] select,[data-theme=dark] textarea,[data-theme=dark] .drop,[data-theme=dark] .sev span{background:#0E2223;color:var(--ink)}
+[data-theme=dark] .note{background:#0E2223}
+#themeBtn{position:fixed;right:16px;bottom:16px;z-index:50;width:44px;height:44px;border-radius:50%;border:0;background:var(--sign);color:#0F3D3E;font-size:1.2rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+
+/* premium upgrade */
+body{-webkit-font-smoothing:antialiased;background-image:linear-gradient(rgba(15,61,62,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(15,61,62,.05) 1px,transparent 1px)}
+.bar{background:linear-gradient(90deg,#0A2F30,#0F3D3E);box-shadow:0 8px 24px -12px rgba(5,25,25,.7);border-bottom:3px solid var(--sign)}
+.card,.dept,.panel,.kpi,.rep,.nt{box-shadow:0 20px 40px -24px rgba(15,61,62,.5);border-color:rgba(15,61,62,.1)}
+.btn{background:linear-gradient(180deg,#16595C,#0F3D3E);box-shadow:0 8px 18px -8px rgba(15,61,62,.7),inset 0 1px 0 rgba(255,255,255,.2);transition:transform .15s,box-shadow .15s;text-decoration:none;display:inline-block}
+.btn:hover{transform:translateY(-1px)}
+.btn.y{background:linear-gradient(180deg,#FFD83D,#F5C518);color:#0F3D3E}
+input,select,textarea{transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 4px rgba(15,61,62,.14)}
+.hero{background:radial-gradient(circle at 88% 15%,rgba(245,197,24,.3),transparent 45%)}
+h1,h2{letter-spacing:-.015em}
+/* notice board */
+.pill{display:inline-block;background:var(--pine);color:#fff;font-weight:600;font-size:.82rem;padding:4px 14px;border-radius:99px;margin-bottom:14px}
+.nhead{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.ngrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.nt{background:var(--paper);border:1px solid var(--grout);border-radius:16px;padding:24px;border-top:6px solid var(--sign)}
+.nt h3{font-size:1.3rem;color:var(--pine)}
+.nt h3 small{display:block;font:500 .92rem "Hind Siliguri";color:var(--muted);margin-top:3px}
+.nt ul{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:14px}
+.nt li{display:grid;grid-template-columns:26px 1fr;gap:12px;line-height:1.45}
+.nt li:before{content:"\2713";width:26px;height:26px;border-radius:50%;background:var(--pine);color:#fff;display:grid;place-items:center;font-size:.85rem;font-weight:700}
+.nt li b{font-weight:600;display:block}.nt li span{display:block;color:var(--muted);font-size:.9rem;margin-top:2px}
+.nbar{background:linear-gradient(90deg,#0A2F30,#0F3D3E);color:#fff;border-radius:16px;padding:20px 24px;margin-top:16px;border-left:8px solid var(--sign)}
+.nbar b{display:block;font-size:1.05rem}.nbar span{opacity:.8;font-size:.92rem}
+@media print{body.pn .bar,body.pn .hero,body.pn #report,body.pn #feed,body.pn footer,body.pn #themeBtn,body.pn .noprint{display:none!important}body.pn{background:#fff}}
+</style>
+</head>
+<body>
+<div class="bar"><div class="wrap">
+  <div class="brand"><i>W</i> Washroom Watch</div>
+  <nav><a href="index.html">Report</a><a href="index.html#feed">All reports</a><a href="dashboard.html">Dashboard</a></nav>
+</div></div>
+
+<header class="head"><div class="wrap">
+  <h1>Reports by department</h1>
+  <p>Every photo submitted, grouped by the reporter’s department. Tap a photo to see the full report.</p>
+</div></header>
+
+<div class="wrap">
+  <div class="tabs" id="tabs"></div>
+  <div id="out"><div class="empty">Loading reports…</div></div>
+</div>
+<footer>Washroom Watch · Keep our shared spaces clean</footer>
+
+<dialog id="dlg"><img id="dImg" alt=""><div class="dbody" id="dBody"></div></dialog>
+
+<script>
+const CONFIG = {
+  SCRIPT_URL: "PASTE_APPS_SCRIPT_EXEC_URL",  // index.html এর মতোই একই URL
+  STATUSES: ["Pending","In Progress","Resolved"]
+};
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $ = s => document.querySelector(s);
+let ALL = [], DEPT = "All", STATUS = "All";
+
+const deptOf = r => (String(r.department || "").trim() || "Unspecified");
+
+async function load(){
+  try{
+    const j = await (await fetch(CONFIG.SCRIPT_URL)).json();
+    ALL = (j.data || []).filter(r => r.photo);   // শুধু ছবি আছে এমন রিপোর্ট
+    ALL.forEach(r => r._d = deptOf(r));
+    render();
+  }catch(e){ $("#out").innerHTML = '<div class="empty">Could not load reports. Check SCRIPT_URL in CONFIG.</div>'; }
+}
+
+function render(){
+  const depts = [...new Set(ALL.map(r => r._d))].sort((a,b) => a.localeCompare(b));
+  const byStatus = ALL.filter(r => STATUS === "All" || r.status === STATUS);
+
+  $("#tabs").innerHTML =
+    chip("All", byStatus.length) + depts.map(d => chip(d, byStatus.filter(r => r._d === d).length)).join("") +
+    `<div class="sel"><select id="st" aria-label="Filter by status"><option value="All">All statuses</option>${CONFIG.STATUSES.map(s=>`<option ${s===STATUS?"selected":""}>${s}</option>`).join("")}</select>
+     <button class="btn" onclick="print()">Print</button></div>`;
+
+  const show = (DEPT === "All" ? depts : [DEPT]).filter(d => depts.includes(d));
+  const html = show.map(d => {
+    const rows = byStatus.filter(r => r._d === d);
+    if (!rows.length) return "";
+    const n = s => rows.filter(r => r.status === s).length;
+    return `<section class="dept"><div class="dh"><h2>${esc(d)}</h2>
+      <div class="cnt"><span class="c-T">${rows.length} reports</span><span class="c-P">${n("Pending")} pending</span><span class="c-I">${n("In Progress")} in progress</span><span class="c-R">${n("Resolved")} resolved</span></div></div>
+      <div class="gal">${rows.map(tile).join("")}</div></section>`;
+  }).join("");
+  $("#out").innerHTML = html || '<div class="empty">No photo reports found for this filter.</div>';
+}
+
+const chip = (d, n) => `<button class="chip ${d===DEPT?"on":""}" data-d="${esc(d)}">${esc(d)}<b>${n}</b></button>`;
+
+function tile(r){
+  const i = ALL.indexOf(r);
+  return `<button class="ph" data-i="${i}" aria-label="Open report ${esc(r.id)}">
+    <img src="${esc(r.photo)}" alt="" loading="lazy">
+    <span class="dot d-${esc(r.status)}">${esc(r.status)}</span>
+    <span class="cap"><b>${esc(r.name)}</b>${esc(r.position)}<br>${esc(r.timestamp)}</span></button>`;
+}
+
+document.addEventListener("click", e => {
+  const c = e.target.closest(".chip"); if (c){ DEPT = c.dataset.d; render(); return; }
+  const t = e.target.closest(".ph"); if (t){ open(ALL[+t.dataset.i]); }
+});
+document.addEventListener("change", e => { if (e.target.id === "st"){ STATUS = e.target.value; render(); } });
+
+function open(r){
+  $("#dImg").src = r.photo; $("#dImg").alt = "Photo for report " + r.id;
+  $("#dBody").innerHTML = `<button class="btn x" onclick="dlg.close()">Close</button>
+    <h3>${esc(r.category)} — ${esc(r.location)}</h3>
+    <div>${esc(r.description)}</div>
+    <div class="m"><b>${esc(r.name)}</b>, ${esc(r.position)} · ${esc(r._d)}<br>${esc(r.timestamp)} · ${esc(r.id)} · ${esc(r.severity)} · ${esc(r.status)}</div>
+    ${r.adminnote ? `<div class="m"><b>Admin note:</b> ${esc(r.adminnote)}</div>` : ""}`;
+  $("#dlg").showModal();
+}
+const dlg = $("#dlg");
+dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+
+load();
+</script>
+<button id="themeBtn" aria-label="Toggle dark mode">&#9790;</button>
+<script>
+(function(){var r=document.documentElement,t=localStorage.getItem("ww_theme");if(t)r.dataset.theme=t;
+document.getElementById("themeBtn").onclick=function(){var n=r.dataset.theme==="dark"?"light":"dark";r.dataset.theme=n;localStorage.setItem("ww_theme",n)}})();
+</script>
+</body>
+</html>

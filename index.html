@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Washroom Watch — Report &amp; Track</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --tile:#E6F1EE; --grout:#CFE2DD; --pine:#0F3D3E; --ink:#12302F; --muted:#5B7774;
+  --sign:#F5C518; --paper:#FFFFFF; --bad:#C8442F; --ok:#1E8E5A; --prog:#2A74C9;
+  --r:14px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:"Hind Siliguri",system-ui,sans-serif;color:var(--ink);background:var(--tile);
+  background-image:linear-gradient(var(--grout) 1px,transparent 1px),linear-gradient(90deg,var(--grout) 1px,transparent 1px);
+  background-size:56px 56px;line-height:1.6}
+h1,h2,h3{font-family:"Bricolage Grotesque",sans-serif;margin:0;line-height:1.1}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+:focus-visible{outline:3px solid var(--sign);outline-offset:2px}
+
+/* top bar */
+.bar{background:var(--pine);color:#fff;position:sticky;top:0;z-index:20}
+.bar .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+.brand{font-family:"Bricolage Grotesque";font-weight:800;font-size:1.2rem;display:flex;gap:10px;align-items:center}
+.brand i{width:28px;height:28px;background:var(--sign);border-radius:7px;display:grid;place-items:center;color:var(--pine);font-style:normal;font-size:1rem}
+.bar nav{display:flex;gap:6px;align-items:center}
+.bar a,.bar button{color:#fff;text-decoration:none;font:500 .95rem "Hind Siliguri";background:none;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}
+.bar a:hover,.bar button:hover{background:rgba(255,255,255,.12)}
+.bar .adm.on{background:var(--sign);color:var(--pine);font-weight:600}
+
+/* hero: wet-floor sign */
+.hero{padding:56px 0 36px}
+.hero .wrap{display:grid;grid-template-columns:1.25fr 1fr;gap:36px;align-items:center}
+.hero h1{font-size:clamp(2.3rem,5.4vw,4.2rem);font-weight:800;color:var(--pine);letter-spacing:-.02em}
+.hero p{max-width:46ch;color:var(--muted);font-size:1.08rem;margin:16px 0 24px}
+.btn{display:inline-block;background:var(--pine);color:#fff;border:0;border-radius:10px;padding:13px 22px;font:600 1rem "Hind Siliguri";cursor:pointer;text-decoration:none}
+.btn:hover{background:#0a2c2d}
+.btn.y{background:var(--sign);color:var(--pine)}
+.btn.y:hover{background:#e4b60f}
+.btn:disabled{opacity:.6;cursor:wait}
+.sign{background:var(--sign);color:var(--pine);border-radius:6px 6px 0 0;padding:22px 24px 26px;
+  clip-path:polygon(8% 0,92% 0,100% 100%,0 100%);text-align:center;transform:rotate(2deg);box-shadow:0 18px 0 -8px rgba(15,61,62,.15)}
+.sign b{font:800 .95rem "Bricolage Grotesque";letter-spacing:.04em}
+.sign .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.sign .nums div{background:rgba(255,255,255,.55);border-radius:8px;padding:10px 4px}
+.sign .nums strong{display:block;font:800 2rem "Bricolage Grotesque"}
+.sign .nums span{font-size:.8rem;font-weight:600}
+
+section{padding:34px 0}
+.card{background:var(--paper);border-radius:var(--r);border:1px solid var(--grout);padding:26px;box-shadow:0 1px 0 rgba(15,61,62,.06)}
+h2{font-size:1.9rem;color:var(--pine);margin-bottom:6px}
+.sub{color:var(--muted);margin:0 0 20px}
+
+/* form */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.full{grid-column:1/-1}
+label{display:block;font-weight:600;font-size:.92rem;margin-bottom:5px}
+label small{color:var(--bad)}
+input,select,textarea{width:100%;font:400 1rem "Hind Siliguri";color:var(--ink);background:#F7FBFA;border:1.5px solid var(--grout);border-radius:10px;padding:11px 13px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--pine);background:#fff}
+textarea{min-height:110px;resize:vertical}
+.sev{display:flex;gap:8px}
+.sev label{flex:1;margin:0;cursor:pointer}
+.sev input{position:absolute;opacity:0;width:0}
+.sev span{display:block;text-align:center;padding:10px;border:1.5px solid var(--grout);border-radius:10px;background:#F7FBFA;font-weight:500}
+.sev input:checked+span{border-color:var(--pine);background:var(--pine);color:#fff}
+.sev input:focus-visible+span{outline:3px solid var(--sign)}
+.drop{border:2px dashed #9DC3BC;border-radius:12px;padding:18px;text-align:center;color:var(--muted);cursor:pointer;background:#F7FBFA}
+.drop img{max-height:160px;border-radius:8px;margin-top:10px}
+.stamp{display:flex;gap:18px;flex-wrap:wrap;font-size:.9rem;color:var(--muted);margin-top:4px}
+.msg{margin-top:14px;padding:12px 14px;border-radius:10px;font-weight:500;display:none}
+.msg.ok{display:block;background:#DDF3E7;color:#12613D}
+.msg.err{display:block;background:#FBE3DE;color:#8E2B1B}
+
+/* feed */
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.tools input{max-width:300px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--grout);background:#fff;border-radius:99px;padding:7px 14px;font:500 .9rem "Hind Siliguri";cursor:pointer}
+.chip.on{background:var(--pine);border-color:var(--pine);color:#fff}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.rep{background:#fff;border:1px solid var(--grout);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.rep img{width:100%;height:170px;object-fit:cover;background:var(--grout)}
+.rep .in{padding:16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.rep h3{font-size:1.1rem}
+.meta{font-size:.85rem;color:var(--muted)}
+.tag{display:inline-block;font-size:.78rem;font-weight:600;padding:3px 10px;border-radius:99px;margin-right:4px}
+.s-Pending{background:#FBE3DE;color:var(--bad)}
+.s-In\ Progress{background:#DCEAFB;color:var(--prog)}
+.s-Resolved{background:#DDF3E7;color:var(--ok)}
+.sv-High{background:var(--bad);color:#fff}.sv-Medium{background:var(--sign);color:var(--pine)}.sv-Low{background:var(--grout);color:var(--pine)}
+.note{background:#F1F8F6;border-left:4px solid var(--pine);padding:8px 10px;font-size:.88rem;border-radius:0 8px 8px 0}
+.adminbox{display:none;gap:6px;margin-top:auto;padding-top:8px}
+body.admin .adminbox{display:flex}
+.adminbox select{padding:7px}.adminbox button{padding:7px 12px;font-size:.9rem}
+.empty{text-align:center;color:var(--muted);padding:40px}
+footer{padding:30px 0 50px;text-align:center;color:var(--muted);font-size:.9rem}
+@media(max-width:760px){.hero .wrap{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.sign{transform:none}.bar nav a{display:none}}
+@media(prefers-reduced-motion:no-preference){.sign{animation:sway 5s ease-in-out infinite alternate}@keyframes sway{to{transform:rotate(-1deg)}}}
+
+[data-theme=dark]{--tile:#0E2223;--grout:#1F3B3B;--ink:#E4F1EE;--muted:#9BB5B1;--pine:#1F8A82;--paper:#14302F}
+[data-theme=dark] .rep,[data-theme=dark] .dept,[data-theme=dark] .chip:not(.on),[data-theme=dark] .sel select,[data-theme=dark] dialog{background:#14302F;color:var(--ink)}
+[data-theme=dark] input,[data-theme=dark] select,[data-theme=dark] textarea,[data-theme=dark] .drop,[data-theme=dark] .sev span{background:#0E2223;color:var(--ink)}
+[data-theme=dark] .note{background:#0E2223}
+#themeBtn{position:fixed;right:16px;bottom:16px;z-index:50;width:44px;height:44px;border-radius:50%;border:0;background:var(--sign);color:#0F3D3E;font-size:1.2rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+
+/* premium upgrade */
+body{-webkit-font-smoothing:antialiased;background-image:linear-gradient(rgba(15,61,62,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(15,61,62,.05) 1px,transparent 1px)}
+.bar{background:linear-gradient(90deg,#0A2F30,#0F3D3E);box-shadow:0 8px 24px -12px rgba(5,25,25,.7);border-bottom:3px solid var(--sign)}
+.card,.dept,.panel,.kpi,.rep,.nt{box-shadow:0 20px 40px -24px rgba(15,61,62,.5);border-color:rgba(15,61,62,.1)}
+.btn{background:linear-gradient(180deg,#16595C,#0F3D3E);box-shadow:0 8px 18px -8px rgba(15,61,62,.7),inset 0 1px 0 rgba(255,255,255,.2);transition:transform .15s,box-shadow .15s;text-decoration:none;display:inline-block}
+.btn:hover{transform:translateY(-1px)}
+.btn.y{background:linear-gradient(180deg,#FFD83D,#F5C518);color:#0F3D3E}
+input,select,textarea{transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 4px rgba(15,61,62,.14)}
+.hero{background:radial-gradient(circle at 88% 15%,rgba(245,197,24,.3),transparent 45%)}
+h1,h2{letter-spacing:-.015em}
+/* notice board */
+.pill{display:inline-block;background:var(--pine);color:#fff;font-weight:600;font-size:.82rem;padding:4px 14px;border-radius:99px;margin-bottom:14px}
+.nhead{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.ngrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.nt{background:var(--paper);border:1px solid var(--grout);border-radius:16px;padding:24px;border-top:6px solid var(--sign)}
+.nt h3{font-size:1.3rem;color:var(--pine)}
+.nt h3 small{display:block;font:500 .92rem "Hind Siliguri";color:var(--muted);margin-top:3px}
+.nt ul{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:14px}
+.nt li{display:grid;grid-template-columns:26px 1fr;gap:12px;line-height:1.45}
+.nt li:before{content:"\2713";width:26px;height:26px;border-radius:50%;background:var(--pine);color:#fff;display:grid;place-items:center;font-size:.85rem;font-weight:700}
+.nt li b{font-weight:600;display:block}.nt li span{display:block;color:var(--muted);font-size:.9rem;margin-top:2px}
+.nbar{background:linear-gradient(90deg,#0A2F30,#0F3D3E);color:#fff;border-radius:16px;padding:20px 24px;margin-top:16px;border-left:8px solid var(--sign)}
+.nbar b{display:block;font-size:1.05rem}.nbar span{opacity:.8;font-size:.92rem}
+@media print{body.pn .bar,body.pn .hero,body.pn #report,body.pn #feed,body.pn footer,body.pn #themeBtn,body.pn .noprint{display:none!important}body.pn{background:#fff}}
+</style>
+</head>
+<body>
+
+<div class="bar"><div class="wrap">
+  <div class="brand"><i>W</i> Washroom Watch</div>
+  <nav><a href="#notice">Notice</a><a href="#report">Report</a><a href="#feed">All reports</a><a href="departments.html">By department</a><a href="dashboard.html">Dashboard</a><button class="adm" id="admBtn">Admin</button></nav>
+</div></div>
+
+<header class="hero"><div class="wrap">
+  <div>
+    <span class="pill">Official office portal</span><h1>Found it dirty? Report it. Don’t just walk away.</h1>
+    <p>Washroom or kitchen left messy? File an official report with your name, position and a photo. Every report is time-stamped, tracked and closed by the admin team.</p>
+    <a class="btn y" href="#report">File a report</a> <a class="btn" href="#notice" style="margin-left:8px">Read the notice</a>
+  </div>
+  <div class="sign" aria-label="Live report counts">
+    <b>LIVE STATUS BOARD</b>
+    <div class="nums">
+      <div><strong id="nP">–</strong><span>Pending</span></div>
+      <div><strong id="nI">–</strong><span>In progress</span></div>
+      <div><strong id="nR">–</strong><span>Resolved</span></div>
+    </div>
+  </div>
+</div></header>
+
+<section id="notice" class="notice"><div class="wrap">
+  <div class="nhead"><div><span class="pill">Office notice · অফিস বিজ্ঞপ্তি</span><h2 style="margin:0">Keep our shared spaces clean</h2>
+    <p class="sub" style="margin:6px 0 0">Applies to every employee, at every level. · সকল কর্মকর্তা-কর্মচারীর জন্য প্রযোজ্য।</p></div>
+    <button class="btn noprint" id="printNotice" type="button">Print notice</button></div>
+  <div class="ngrid" id="ngrid"></div>
+  <div class="nbar" id="nbar"></div>
+</div></section>
+
+<section id="report"><div class="wrap"><div class="card">
+  <h2>Submit a report</h2>
+  <p class="sub">Fields marked <small style="color:var(--bad)">*</small> are required. Date and time are recorded automatically.</p>
+  <form id="form" novalidate>
+    <div class="grid">
+      <div><label>Full name <small>*</small></label><input name="name" required autocomplete="name"></div>
+      <div><label>Position / designation <small>*</small></label><input name="position" required placeholder="e.g. Sales Executive"></div>
+      <div><label>Department <small>*</small></label><select name="department" id="dept" required></select></div>
+      <div><label>Location <small>*</small></label><select name="location" id="loc" required></select></div>
+      <div><label>Issue type <small>*</small></label><select name="category" id="cat" required></select></div>
+      <div><label>Severity</label>
+        <div class="sev">
+          <label><input type="radio" name="severity" value="Low"><span>Low</span></label>
+          <label><input type="radio" name="severity" value="Medium" checked><span>Medium</span></label>
+          <label><input type="radio" name="severity" value="High"><span>High</span></label>
+        </div></div>
+      <div class="full"><label>What happened? <small>*</small></label><textarea name="description" required placeholder="Describe the problem clearly: what is dirty, since when, and who may be responsible (if known)."></textarea></div>
+      <div class="full"><label>Photo evidence <small>*</small></label>
+        <div class="drop" id="drop" tabindex="0" role="button">Tap to choose a photo<br><small>JPG / PNG, up to 10 MB</small><br><img id="prev" alt="" hidden></div>
+        <input type="file" id="file" accept="image/*" hidden>
+        <div class="stamp"><span>Date &amp; time: <b id="clock"></b></span></div>
+      </div>
+    </div>
+    <button class="btn" id="submit" style="margin-top:20px;width:100%">Submit report</button>
+    <div class="msg" id="msg" role="status"></div>
+  </form>
+</div></div></section>
+
+<section id="feed"><div class="wrap">
+  <h2>All reports</h2>
+  <p class="sub">Everything submitted so far, newest first.</p>
+  <div class="tools">
+    <input id="q" type="search" placeholder="Search name, location, issue…">
+    <div class="chips" id="chips"></div>
+  </div>
+  <div class="list" id="list"><div class="empty">Loading reports…</div></div>
+</div></section>
+
+<footer>Washroom Watch · Keep our shared spaces clean</footer>
+
+<script>
+/* ============ CONFIG — শুধু এখানে হাত দাও ============ */
+const CONFIG = {
+  SCRIPT_URL: "PASTE_APPS_SCRIPT_EXEC_URL",     // Code.gs deploy করার /exec URL
+  CLOUD_NAME: "PASTE_CLOUDINARY_CLOUD_NAME",    // Cloudinary dashboard এ দেখো
+  UPLOAD_PRESET: "PASTE_UNSIGNED_PRESET",       // Settings > Upload > Unsigned preset
+  LOCATIONS: ["Washroom – Ground Floor","Washroom – 1st Floor","Washroom – 2nd Floor","Kitchen","Pantry / Dining","Other"],
+  CATEGORIES: ["Dirty floor / sink","Bad smell","Trash not removed","Mess left in kitchen","Water / leakage","No soap / tissue","Broken fixture","Other"],
+  DEPARTMENTS: ["Accounts","HR","IT","Sales","Marketing","Operations","Admin","Other"],  // department list এখানে বদলাও
+  NOTICE: [
+    {t:"Washroom", bn:"ওয়াশরুম", rules:[
+      ["Throw tissue and waste only in the bin. Never leave it on the floor or outside.","টিস্যু ও আবর্জনা শুধু ডাস্টবিনে ফেলুন; মেঝেতে বা বাইরে ফেলবেন না।"],
+      ["Flush after every use and keep the commode clean.","ব্যবহারের পর ফ্লাশ করুন এবং কমোড পরিষ্কার রাখুন।"],
+      ["Wipe up spilled water or dirt on the floor and basin.","মেঝে ও বেসিনে পানি বা ময়লা পড়লে মুছে দিন।"],
+      ["Wash your hands with soap. Switch off taps and lights when leaving.","সাবান দিয়ে হাত ধুন এবং বের হওয়ার সময় ট্যাপ ও লাইট বন্ধ করুন।"]]},
+    {t:"Dining & Kitchen", bn:"ডাইনিং ও কিচেন", rules:[
+      ["Clear your table and take your plate and cup away after eating.","খাওয়ার পর টেবিল পরিষ্কার করুন এবং নিজের প্লেট-গ্লাস সরিয়ে নিন।"],
+      ["Wash your own dishes. Do not leave them in the sink.","নিজের থালাবাসন নিজে ধুন; সিঙ্কে ফেলে রাখবেন না।"],
+      ["Put food waste in the dustbin, never in the sink or drain.","খাবারের উচ্ছিষ্ট ডাস্টবিনে ফেলুন; সিঙ্ক বা ড্রেনে নয়।"],
+      ["Label your food in the fridge and remove old leftovers.","ফ্রিজে খাবারে নাম লিখুন এবং পুরোনো খাবার সরিয়ে ফেলুন।"]]},
+    {t:"Everyone, every day", bn:"সবার জন্য", rules:[
+      ["Leave every shared space cleaner than you found it.","যেকোনো শেয়ার্ড স্থান যেমন পেয়েছেন, তার চেয়ে পরিষ্কার রেখে যান।"],
+      ["See a problem? Report it on this page with a photo.","সমস্যা দেখলে ছবিসহ এই পেজে রিপোর্ট করুন।"],
+      ["Respect the cleaning staff and your colleagues.","পরিচ্ছন্নতাকর্মী ও সহকর্মীদের সম্মান করুন।"]]}
+  ],
+  NOTICE_FOOT: ["Every report is recorded with the reporter’s name, position, date and time. Repeated violations are referred to the department head.","প্রতিটি রিপোর্টে নাম, পদবি, তারিখ ও সময় রেকর্ড হয়। বারবার নিয়ম ভাঙলে বিভাগীয় প্রধানকে জানানো হবে।"],
+  STATUSES: ["Pending","In Progress","Resolved"]
+};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let REPORTS = [], FILTER = "All", ADMIN_PIN = "";
+
+/* fill selects */
+$("#dept").innerHTML = '<option value="">Select department</option>' + CONFIG.DEPARTMENTS.map(x => `<option>${esc(x)}</option>`).join("");
+$("#loc").innerHTML = '<option value="">Select location</option>' + CONFIG.LOCATIONS.map(x => `<option>${esc(x)}</option>`).join("");
+$("#cat").innerHTML = '<option value="">Select issue</option>' + CONFIG.CATEGORIES.map(x => `<option>${esc(x)}</option>`).join("");
+
+/* live clock (Dhaka) */
+const fmt = new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Dhaka",dateStyle:"medium",timeStyle:"short"});
+const tick = () => $("#clock").textContent = fmt.format(new Date());
+tick(); setInterval(tick, 30000);
+
+/* photo picker */
+const drop = $("#drop"), file = $("#file");
+drop.onclick = () => file.click();
+drop.onkeydown = e => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), file.click());
+file.onchange = () => {
+  const f = file.files[0]; if (!f) return;
+  if (f.size > 10*1024*1024){ show("err","Photo is larger than 10 MB. Choose a smaller one."); file.value=""; return; }
+  $("#prev").src = URL.createObjectURL(f); $("#prev").hidden = false;
+};
+
+function show(type, text){ const m = $("#msg"); m.className = "msg " + type; m.textContent = text; }
+
+async function compress(f){
+  try{
+    const bmp = await createImageBitmap(f), k = Math.min(1, 1600/Math.max(bmp.width,bmp.height));
+    const c = document.createElement("canvas"); c.width = Math.round(bmp.width*k); c.height = Math.round(bmp.height*k);
+    c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+    return await new Promise(r => c.toBlob(b => r(b||f), "image/jpeg", .82));
+  }catch(e){ return f; }
+}
+async function uploadPhoto(f){
+  const fd = new FormData();
+  fd.append("file", await compress(f), "report.jpg"); fd.append("upload_preset", CONFIG.UPLOAD_PRESET);
+  const r = await fetch(`https://api.cloudinary.com/v1_1/${CONFIG.CLOUD_NAME}/image/upload`, {method:"POST", body: fd});
+  const j = await r.json();
+  if (!j.secure_url) throw new Error(j.error?.message || "Photo upload failed");
+  return j.secure_url;
+}
+
+async function post(data){
+  const r = await fetch(CONFIG.SCRIPT_URL, {method:"POST", body: new URLSearchParams(data)});
+  return r.json();
+}
+
+$("#form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target, d = Object.fromEntries(new FormData(f));
+  for (const k of ["name","position","department","location","category","description"])
+    if (!String(d[k]||"").trim()){ show("err","Please fill in all required fields."); f[k].focus(); return; }
+  if (!file.files[0]){ show("err","Please attach a photo as evidence."); return; }
+  if (Date.now() - (+localStorage.getItem("ww_last")||0) < 30000){ show("err","Please wait 30 seconds before sending another report."); return; }
+  const btn = $("#submit"); btn.disabled = true; btn.textContent = "Uploading photo…"; $("#msg").className = "msg";
+  try{
+    d.photo = await uploadPhoto(file.files[0]);
+    btn.textContent = "Saving report…";
+    const res = await post({action:"submit", ...d});
+    if (res.status !== "ok") throw new Error(res.message || "Could not save");
+    show("ok", `Report submitted. Your reference number is ${res.id}.`);
+    localStorage.setItem("ww_last", Date.now());
+    f.reset(); file.value = ""; $("#prev").hidden = true;
+    loadReports();
+  }catch(err){ show("err", "Submission failed: " + err.message); }
+  btn.disabled = false; btn.textContent = "Submit report";
+});
+
+/* feed */
+async function loadReports(){
+  try{
+    const r = await fetch(CONFIG.SCRIPT_URL); const j = await r.json();
+    REPORTS = j.data || [];
+  }catch(e){ $("#list").innerHTML = '<div class="empty">Could not load reports. Check SCRIPT_URL in CONFIG.</div>'; return; }
+  const c = s => REPORTS.filter(x => x.status === s).length;
+  $("#nP").textContent = c("Pending"); $("#nI").textContent = c("In Progress"); $("#nR").textContent = c("Resolved");
+  render();
+}
+
+function render(){
+  $("#chips").innerHTML = ["All",...CONFIG.STATUSES].map(s => `<button type="button" class="chip ${s===FILTER?"on":""}" data-s="${s}">${s}</button>`).join("");
+  const q = $("#q").value.trim().toLowerCase();
+  const rows = REPORTS.filter(r => (FILTER==="All" || r.status===FILTER) &&
+    (!q || [r.name,r.position,r.location,r.category,r.description,r.id].join(" ").toLowerCase().includes(q)));
+  $("#list").innerHTML = rows.length ? rows.map(card).join("") : '<div class="empty">No reports match. Good news — or try another filter.</div>';
+}
+
+function card(r){
+  const img = r.photo ? `<a href="${esc(r.photo)}" target="_blank" rel="noopener"><img src="${esc(r.photo)}" alt="Photo for report ${esc(r.id)}" loading="lazy"></a>` : "";
+  return `<article class="rep">${img}<div class="in">
+    <div><span class="tag s-${esc(r.status)}">${esc(r.status)}</span><span class="tag sv-${esc(r.severity)}">${esc(r.severity)}</span></div>
+    <h3>${esc(r.category)} — ${esc(r.location)}</h3>
+    <div>${esc(r.description)}</div>
+    <div class="meta"><b>${esc(r.name)}</b>, ${esc(r.position)}${r.department?" ("+esc(r.department)+")":""}<br>${esc(r.timestamp)} · ${esc(r.id)}</div>
+    ${r.adminnote ? `<div class="note"><b>Admin:</b> ${esc(r.adminnote)}</div>` : ""}
+    <div class="adminbox">
+      <select data-id="${esc(r.id)}">${CONFIG.STATUSES.map(s=>`<option ${s===r.status?"selected":""}>${s}</option>`).join("")}</select>
+      <input placeholder="Note" value="${esc(r.adminnote)}" data-note="${esc(r.id)}">
+      <button class="btn" data-save="${esc(r.id)}">Save</button>
+    </div></div></article>`;
+}
+
+$("#chips").onclick = e => { if (e.target.dataset.s){ FILTER = e.target.dataset.s; render(); } };
+$("#q").oninput = render;
+
+/* admin */
+$("#admBtn").onclick = () => {
+  if (ADMIN_PIN){ ADMIN_PIN = ""; document.body.classList.remove("admin"); $("#admBtn").classList.remove("on"); $("#admBtn").textContent="Admin"; return; }
+  const p = prompt("Enter admin PIN"); if (!p) return;
+  ADMIN_PIN = p; document.body.classList.add("admin"); $("#admBtn").classList.add("on"); $("#admBtn").textContent = "Admin mode on";
+};
+$("#list").onclick = async e => {
+  const id = e.target.dataset.save; if (!id) return;
+  const status = document.querySelector(`select[data-id="${id}"]`).value;
+  const note = document.querySelector(`input[data-note="${id}"]`).value;
+  e.target.disabled = true; e.target.textContent = "Saving…";
+  try{
+    const res = await post({action:"updateStatus", pin: ADMIN_PIN, id, status, note});
+    if (res.status !== "ok") throw new Error(res.message);
+    await loadReports();
+  }catch(err){
+    alert("Update failed: " + err.message);
+    if (/PIN/i.test(err.message)){ ADMIN_PIN=""; document.body.classList.remove("admin"); $("#admBtn").classList.remove("on"); $("#admBtn").textContent="Admin"; }
+    e.target.disabled = false; e.target.textContent = "Save";
+  }
+};
+
+/* notice board */
+$("#ngrid").innerHTML = CONFIG.NOTICE.map(g => `<article class="nt"><h3>${esc(g.t)}<small>${esc(g.bn)}</small></h3><ul>${g.rules.map(r => `<li><div><b>${esc(r[0])}</b><span>${esc(r[1])}</span></div></li>`).join("")}</ul></article>`).join("");
+$("#nbar").innerHTML = `<b>${esc(CONFIG.NOTICE_FOOT[0])}</b><span>${esc(CONFIG.NOTICE_FOOT[1])}</span>`;
+$("#printNotice").onclick = () => { document.body.classList.add("pn"); print(); };
+addEventListener("afterprint", () => document.body.classList.remove("pn"));
+
+loadReports();
+</script>
+<button id="themeBtn" aria-label="Toggle dark mode">&#9790;</button>
+<script>
+(function(){var r=document.documentElement,t=localStorage.getItem("ww_theme");if(t)r.dataset.theme=t;
+document.getElementById("themeBtn").onclick=function(){var n=r.dataset.theme==="dark"?"light":"dark";r.dataset.theme=n;localStorage.setItem("ww_theme",n)}})();
+</script>
+</body>
+</html>
