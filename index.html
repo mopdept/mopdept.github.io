@@ -216,9 +216,9 @@ h1,h2{letter-spacing:-.015em}
 <script>
 /* ============ CONFIG — শুধু এখানে হাত দাও ============ */
 const CONFIG = {
-  SCRIPT_URL: "PASTE_APPS_SCRIPT_EXEC_URL",     // Code.gs deploy করার /exec URL
-  CLOUD_NAME: "PASTE_CLOUDINARY_CLOUD_NAME",    // Cloudinary dashboard এ দেখো
-  UPLOAD_PRESET: "PASTE_UNSIGNED_PRESET",       // Settings > Upload > Unsigned preset
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwgbavMBdkSuLKlku-_JBrAWs0XvgdIe9Rp_sr3hAKZHimNTIDqOzcR6IL0l-S8QUNRBw/exec",     // Code.gs deploy করার /exec URL
+  CLOUD_NAME: "lrewnla2",    // Cloudinary dashboard এ দেখো
+  UPLOAD_PRESET: "washroom_unsigned",       // Settings > Upload > Unsigned preset
   LOCATIONS: ["Washroom – Ground Floor","Washroom – 1st Floor","Washroom – 2nd Floor","Kitchen","Pantry / Dining","Other"],
   CATEGORIES: ["Dirty floor / sink","Bad smell","Trash not removed","Mess left in kitchen","Water / leakage","No soap / tissue","Broken fixture","Other"],
   DEPARTMENTS: ["Accounts","HR","IT","Engineering","Sales","Marketing","Operations","Admin","Other"],  // department list এখানে বদলাও
@@ -327,6 +327,7 @@ async function loadReports(){
   try{
     const r = await fetch(CONFIG.SCRIPT_URL); const j = await r.json();
     REPORTS = j.data || [];
+    if (j.notices && j.notices.length) renderNotice(groupNotices(j.notices));
   }catch(e){ $("#list").innerHTML = '<div class="empty">Could not load reports. Check SCRIPT_URL in CONFIG.</div>'; return; }
   const c = s => REPORTS.filter(x => x.status === s).length;
   $("#nP").textContent = c("Pending"); $("#nI").textContent = c("In Progress"); $("#nR").textContent = c("Resolved");
@@ -382,7 +383,9 @@ $("#list").onclick = async e => {
 };
 
 /* notice board */
-$("#ngrid").innerHTML = CONFIG.NOTICE.map(g => `<article class="nt"><h3>${esc(g.t)}<small>${esc(g.bn)}</small></h3><ul>${g.rules.map(r => `<li><div><b>${esc(r[0])}</b><span>${esc(r[1])}</span></div></li>`).join("")}</ul></article>`).join("");
+function groupNotices(rows){ const m = new Map(); rows.forEach(r => { if (!m.has(r.g)) m.set(r.g,{t:r.g,bn:r.gbn,rules:[]}); m.get(r.g).rules.push([r.en,r.bn]); }); return [...m.values()]; }
+function renderNotice(list){ $("#ngrid").innerHTML = list.map(g => `<article class="nt"><h3>${esc(g.t)}<small>${esc(g.bn)}</small></h3><ul>${g.rules.map(r => `<li><div><b>${esc(r[0])}</b><span>${esc(r[1])}</span></div></li>`).join("")}</ul></article>`).join(""); }
+renderNotice(CONFIG.NOTICE);
 $("#nbar").innerHTML = `<b>${esc(CONFIG.NOTICE_FOOT[0])}</b><span>${esc(CONFIG.NOTICE_FOOT[1])}</span>`;
 $("#printNotice").onclick = () => { document.body.classList.add("pn"); print(); };
 addEventListener("afterprint", () => document.body.classList.remove("pn"));

@@ -5,22 +5,34 @@
    -> /exec URL টা index.html এর CONFIG.SCRIPT_URL এ বসাও।
    ========================================================= */
 
-const SHEET_NAME = "Reports";
-const ADMIN_PIN  = "CHANGE_ME_1234";   // ⚠️ নিজের admin PIN দাও
+const SHEET_NAME = "Report";          // আপনার শিটের ট্যাবের নাম
+// Admin PIN কোডে নেই — "Admin Pasword" ট্যাবের A1 ঘরে লিখুন (কোড পাবলিক হলেও PIN সুরক্ষিত)
 const ADMIN_EMAIL = "";  // নতুন রিপোর্ট এলে এই ইমেইলে নোটিফিকেশন যাবে (খালি রাখলে বন্ধ)
 const HEADERS = ["ID","Timestamp","Name","Position","Department","Location",
                  "Category","Severity","Description","Photo","Status","AdminNote","UpdatedAt"];
 
 function getSheet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sh = ss.getSheetByName(SHEET_NAME);
-  if (!sh) {
-    sh = ss.insertSheet(SHEET_NAME);
+  let sh = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
+  if (sh.getLastRow() === 0) {
     sh.appendRow(HEADERS);
     sh.setFrozenRows(1);
     sh.getRange(1, 1, 1, HEADERS.length).setFontWeight("bold").setBackground("#0F3D3E").setFontColor("#fff");
   }
   return sh;
+}
+
+function getPin_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getSheetByName("Admin Pasword") || ss.getSheetByName("Admin Password");
+  return sh ? String(sh.getRange("A1").getValue()).trim() : "";
+}
+
+function notices_() {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Notice");
+  if (!sh || sh.getLastRow() < 2) return [];
+  return sh.getDataRange().getValues().slice(1).filter(r => r[0] && r[2])
+    .map(r => ({ g: String(r[0]), gbn: String(r[1] || ""), en: String(r[2]), bn: String(r[3] || "") }));
 }
 
 function now_() {
@@ -40,7 +52,7 @@ function doGet() {
     head.forEach((h, i) => o[h] = (r[i] instanceof Date) ? Utilities.formatDate(r[i], "Asia/Dhaka", "yyyy-MM-dd HH:mm:ss") : r[i]);
     return o;
   });
-  return json_({ status: "ok", data: data.reverse() });
+  return json_({ status: "ok", data: data.reverse(), notices: notices_() });
 }
 
 function doPost(e) {
@@ -68,7 +80,9 @@ function doPost(e) {
     }
 
     if (p.action === "updateStatus") {
-      if (p.pin !== ADMIN_PIN) return json_({ status: "error", message: "Wrong PIN" });
+      const pin = getPin_();
+      if (!pin) return json_({ status: "error", message: "Admin PIN not set (Admin Pasword tab, cell A1)" });
+      if (String(p.pin).trim() !== pin) return json_({ status: "error", message: "Wrong PIN" });
       const ids = sh.getRange(2, 1, Math.max(sh.getLastRow() - 1, 1), 1).getValues().flat();
       const idx = ids.indexOf(p.id);
       if (idx < 0) return json_({ status: "error", message: "Report not found" });
