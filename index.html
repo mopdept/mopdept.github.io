@@ -296,7 +296,9 @@ async function uploadPhoto(f){
 
 async function post(data){
   const r = await fetch(CONFIG.SCRIPT_URL, {method:"POST", body: new URLSearchParams(data)});
-  return r.json();
+  const t = await r.text();
+  try{ return JSON.parse(t); }
+  catch(e){ throw new Error("The server sent a web page instead of data. Check the Apps Script deployment: access must be Anyone and the latest version must be deployed."); }
 }
 
 $("#form").addEventListener("submit", async e => {
