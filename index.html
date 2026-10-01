@@ -132,6 +132,12 @@ h1,h2{letter-spacing:-.015em}
 .nbar{background:linear-gradient(90deg,#0A2F30,#0F3D3E);color:#fff;border-radius:16px;padding:20px 24px;margin-top:16px;border-left:8px solid var(--sign)}
 .nbar b{display:block;font-size:1.05rem}.nbar span{opacity:.8;font-size:.92rem}
 @media print{body.pn .bar,body.pn .hero,body.pn #report,body.pn #feed,body.pn footer,body.pn #themeBtn,body.pn .noprint{display:none!important}body.pn{background:#fff}}
+.anon{background:#F1F8F6;border:1.5px dashed #9DC3BC;border-radius:12px;padding:14px 16px}
+.sw{display:flex;gap:12px;align-items:flex-start;cursor:pointer;margin:0}
+.sw input{width:20px;height:20px;margin-top:4px;accent-color:#0F3D3E;flex:none}
+.sw small{display:block;color:var(--muted);font-weight:400}
+.is-anon .idf{opacity:.4;pointer-events:none}
+[data-theme=dark] .anon{background:#0E2223}
 </style>
 </head>
 <body>
@@ -169,9 +175,11 @@ h1,h2{letter-spacing:-.015em}
   <h2>Submit a report</h2>
   <p class="sub">Fields marked <small style="color:var(--bad)">*</small> are required. Date and time are recorded automatically.</p>
   <form id="form" novalidate>
+    <input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
     <div class="grid">
-      <div><label>Full name <small>*</small></label><input name="name" required autocomplete="name"></div>
-      <div><label>Position / designation <small>*</small></label><input name="position" required placeholder="e.g. Sales Executive"></div>
+      <div class="full anon"><label class="sw"><input type="checkbox" id="anon" name="anonymous" value="1"><span><b>Submit anonymously</b><small>Your name and position are not saved or shown. Photo location data is removed before upload. You can still follow your report under "My reports" on this device.</small></span></label></div>
+      <div class="idf"><label>Full name <small>*</small></label><input name="name" required autocomplete="name"></div>
+      <div class="idf"><label>Position / designation <small>*</small></label><input name="position" required placeholder="e.g. Sales Executive"></div>
       <div><label>Department <small>*</small></label><select name="department" id="dept" required></select></div>
       <div><label>Location <small>*</small></label><select name="location" id="loc" required></select></div>
       <div><label>Issue type <small>*</small></label><select name="category" id="cat" required></select></div>
@@ -213,7 +221,7 @@ const CONFIG = {
   UPLOAD_PRESET: "PASTE_UNSIGNED_PRESET",       // Settings > Upload > Unsigned preset
   LOCATIONS: ["Washroom – Ground Floor","Washroom – 1st Floor","Washroom – 2nd Floor","Kitchen","Pantry / Dining","Other"],
   CATEGORIES: ["Dirty floor / sink","Bad smell","Trash not removed","Mess left in kitchen","Water / leakage","No soap / tissue","Broken fixture","Other"],
-  DEPARTMENTS: ["Accounts","HR","IT","Sales","Marketing","Operations","Admin","Other"],  // department list এখানে বদলাও
+  DEPARTMENTS: ["Accounts","HR","IT","Engineering","Sales","Marketing","Operations","Admin","Other"],  // department list এখানে বদলাও
   NOTICE: [
     {t:"Washroom", bn:"ওয়াশরুম", rules:[
       ["Throw tissue and waste only in the bin. Never leave it on the floor or outside.","টিস্যু ও আবর্জনা শুধু ডাস্টবিনে ফেলুন; মেঝেতে বা বাইরে ফেলবেন না।"],
@@ -237,6 +245,15 @@ const CONFIG = {
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let REPORTS = [], FILTER = "All", ADMIN_PIN = "";
+let MY = []; try{ MY = JSON.parse(localStorage.getItem("ww_my")||"[]"); }catch(e){}
+function mine(id){ MY.push(id); try{ localStorage.setItem("ww_my", JSON.stringify(MY)); }catch(e){} }
+const who = r => r.name === "Anonymous" ? "<b>Anonymous reporter</b>" : `<b>${esc(r.name)}</b>, ${esc(r.position)}`;
+function setAnon(on){
+  const f = $("#form"); f.classList.toggle("is-anon", on);
+  ["name","position"].forEach(n => { const i = f.querySelector(`[name=${n}]`); i.disabled = on; i.required = !on; if (on) i.value = ""; });
+  f.querySelector("[name=department]").required = !on;
+}
+$("#anon").onchange = e => setAnon(e.target.checked);
 
 /* fill selects */
 $("#dept").innerHTML = '<option value="">Select department</option>' + CONFIG.DEPARTMENTS.map(x => `<option>${esc(x)}</option>`).join("");
@@ -285,7 +302,8 @@ async function post(data){
 $("#form").addEventListener("submit", async e => {
   e.preventDefault();
   const f = e.target, d = Object.fromEntries(new FormData(f));
-  for (const k of ["name","position","department","location","category","description"])
+  const anon = d.anonymous === "1";
+  for (const k of (anon ? ["location","category","description"] : ["name","position","department","location","category","description"]))
     if (!String(d[k]||"").trim()){ show("err","Please fill in all required fields."); f[k].focus(); return; }
   if (!file.files[0]){ show("err","Please attach a photo as evidence."); return; }
   if (Date.now() - (+localStorage.getItem("ww_last")||0) < 30000){ show("err","Please wait 30 seconds before sending another report."); return; }
@@ -295,9 +313,10 @@ $("#form").addEventListener("submit", async e => {
     btn.textContent = "Saving report…";
     const res = await post({action:"submit", ...d});
     if (res.status !== "ok") throw new Error(res.message || "Could not save");
-    show("ok", `Report submitted. Your reference number is ${res.id}.`);
+    mine(res.id);
+    show("ok", `Report submitted${anon ? " anonymously" : ""}. Your reference number is ${res.id}. Keep it to track progress.`);
     localStorage.setItem("ww_last", Date.now());
-    f.reset(); file.value = ""; $("#prev").hidden = true;
+    f.reset(); setAnon(false); file.value = ""; $("#prev").hidden = true;
     loadReports();
   }catch(err){ show("err", "Submission failed: " + err.message); }
   btn.disabled = false; btn.textContent = "Submit report";
@@ -315,9 +334,9 @@ async function loadReports(){
 }
 
 function render(){
-  $("#chips").innerHTML = ["All",...CONFIG.STATUSES].map(s => `<button type="button" class="chip ${s===FILTER?"on":""}" data-s="${s}">${s}</button>`).join("");
+  $("#chips").innerHTML = ["All","My reports",...CONFIG.STATUSES].map(s => `<button type="button" class="chip ${s===FILTER?"on":""}" data-s="${s}">${s}</button>`).join("");
   const q = $("#q").value.trim().toLowerCase();
-  const rows = REPORTS.filter(r => (FILTER==="All" || r.status===FILTER) &&
+  const rows = REPORTS.filter(r => (FILTER==="All" || (FILTER==="My reports" ? MY.includes(r.id) : r.status===FILTER)) &&
     (!q || [r.name,r.position,r.location,r.category,r.description,r.id].join(" ").toLowerCase().includes(q)));
   $("#list").innerHTML = rows.length ? rows.map(card).join("") : '<div class="empty">No reports match. Good news — or try another filter.</div>';
 }
@@ -328,7 +347,7 @@ function card(r){
     <div><span class="tag s-${esc(r.status)}">${esc(r.status)}</span><span class="tag sv-${esc(r.severity)}">${esc(r.severity)}</span></div>
     <h3>${esc(r.category)} — ${esc(r.location)}</h3>
     <div>${esc(r.description)}</div>
-    <div class="meta"><b>${esc(r.name)}</b>, ${esc(r.position)}${r.department?" ("+esc(r.department)+")":""}<br>${esc(r.timestamp)} · ${esc(r.id)}</div>
+    <div class="meta">${who(r)}${r.department?" ("+esc(r.department)+")":""}<br>${esc(r.timestamp)} · ${esc(r.id)}</div>
     ${r.adminnote ? `<div class="note"><b>Admin:</b> ${esc(r.adminnote)}</div>` : ""}
     <div class="adminbox">
       <select data-id="${esc(r.id)}">${CONFIG.STATUSES.map(s=>`<option ${s===r.status?"selected":""}>${s}</option>`).join("")}</select>
@@ -368,6 +387,7 @@ $("#nbar").innerHTML = `<b>${esc(CONFIG.NOTICE_FOOT[0])}</b><span>${esc(CONFIG.N
 $("#printNotice").onclick = () => { document.body.classList.add("pn"); print(); };
 addEventListener("afterprint", () => document.body.classList.remove("pn"));
 
+setInterval(() => { if (!ADMIN_PIN) loadReports(); }, 60000);
 loadReports();
 </script>
 <button id="themeBtn" aria-label="Toggle dark mode">&#9790;</button>

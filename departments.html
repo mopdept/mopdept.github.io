@@ -155,7 +155,7 @@ function tile(r){
   return `<button class="ph" data-i="${i}" aria-label="Open report ${esc(r.id)}">
     <img src="${esc(r.photo)}" alt="" loading="lazy">
     <span class="dot d-${esc(r.status)}">${esc(r.status)}</span>
-    <span class="cap"><b>${esc(r.name)}</b>${esc(r.position)}<br>${esc(r.timestamp)}</span></button>`;
+    <span class="cap"><b>${r.name==="Anonymous" ? "Anonymous reporter" : esc(r.name)}</b>${r.name==="Anonymous" ? "" : esc(r.position)}<br>${esc(r.timestamp)}</span></button>`;
 }
 
 document.addEventListener("click", e => {
@@ -169,7 +169,7 @@ function open(r){
   $("#dBody").innerHTML = `<button class="btn x" onclick="dlg.close()">Close</button>
     <h3>${esc(r.category)} — ${esc(r.location)}</h3>
     <div>${esc(r.description)}</div>
-    <div class="m"><b>${esc(r.name)}</b>, ${esc(r.position)} · ${esc(r._d)}<br>${esc(r.timestamp)} · ${esc(r.id)} · ${esc(r.severity)} · ${esc(r.status)}</div>
+    <div class="m"><b>${r.name==="Anonymous" ? "Anonymous reporter" : esc(r.name)+", "+esc(r.position)}</b> · ${esc(r._d)}<br>${esc(r.timestamp)} · ${esc(r.id)} · ${esc(r.severity)} · ${esc(r.status)}</div>
     ${r.adminnote ? `<div class="m"><b>Admin note:</b> ${esc(r.adminnote)}</div>` : ""}`;
   $("#dlg").showModal();
 }

@@ -51,14 +51,18 @@ function doPost(e) {
     const sh = getSheet_();
 
     if (p.action === "submit") {
-      const required = ["name", "position", "location", "category", "description"];
+      if (p.website) return json_({ status: "ok", id: "WR-0" });   // honeypot: bot হলে চুপচাপ বাদ
+      const anon = p.anonymous === "1";
+      const nm = anon ? "Anonymous" : String(p.name || "").trim();
+      const pos = anon ? "Anonymous" : String(p.position || "").trim();
+      const required = anon ? ["location", "category", "description"] : ["name", "position", "location", "category", "description"];
       for (const k of required) if (!p[k] || !String(p[k]).trim()) return json_({ status: "error", message: "Missing: " + k });
       const id = "WR-" + Utilities.formatDate(new Date(), "Asia/Dhaka", "yyMMdd") + "-" + String(sh.getLastRow()).padStart(4, "0");
-      sh.appendRow([id, now_(), p.name, p.position, p.department || "", p.location,
-                    p.category, p.severity || "Medium", p.description, p.photo || "", "Pending", "", now_()]);
+      sh.appendRow([id, now_(), nm, pos, p.department || "", p.location,
+                    p.category, p.severity || "Medium", String(p.description).slice(0, 1500), p.photo || "", "Pending", "", now_()]);
       if (ADMIN_EMAIL) {
         try { MailApp.sendEmail(ADMIN_EMAIL, "[" + (p.severity || "Medium") + "] New washroom report " + id,
-          p.name + " (" + p.position + ", " + (p.department || "-") + ")\n" + p.location + " — " + p.category + "\n\n" + p.description + "\n\nPhoto: " + (p.photo || "-")); } catch (x) {}
+          nm + " (" + pos + ", " + (p.department || "-") + ")\n" + p.location + " — " + p.category + "\n\n" + p.description + "\n\nPhoto: " + (p.photo || "-")); } catch (x) {}
       }
       return json_({ status: "ok", id: id });
     }

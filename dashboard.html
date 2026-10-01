@@ -101,7 +101,7 @@ function draw(){
     `<div class="panel"><h3>Reports by department</h3>${bars(count("department"))}</div>
      <div class="panel"><h3>Hotspot locations</h3>${bars(count("location"))}</div>
      <div class="panel"><h3>Issue types</h3>${bars(count("category"))}</div>
-     <div class="panel"><h3>Most frequent reporters</h3>${bars(count("name"))}</div>
+     <div class="panel"><h3>Most frequent reporters</h3>${bars(count("name").filter(x => x[0] !== "Anonymous"))}</div>
      <div class="panel" style="grid-column:1/-1"><h3>Last 14 days</h3><div class="trend">${per.map((n,i)=>`<i style="height:${n/mx*100}%" data-t="${days[i].slice(5)}: ${n}"></i>`).join("")}</div><div class="axis"><span>${days[0].slice(5)}</span><span>${days[13].slice(5)}</span></div></div>`;
 }
 
