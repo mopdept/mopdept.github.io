@@ -49,7 +49,7 @@ function doGet() {
   const head = rows.shift().map(h => String(h).toLowerCase());
   const data = rows.filter(r => r[0]).map(r => {
     const o = {};
-    head.forEach((h, i) => o[h] = (r[i] instanceof Date) ? Utilities.formatDate(r[i], "Asia/Dhaka", "yyyy-MM-dd HH:mm:ss") : r[i]);
+    head.forEach((h, i) => o[h] = (Object.prototype.toString.call(r[i]) === "[object Date]") ? Utilities.formatDate(r[i], "Asia/Dhaka", "yyyy-MM-dd HH:mm:ss") : r[i]);
     return o;
   });
   return json_({ status: "ok", data: data.reverse(), notices: notices_() });
